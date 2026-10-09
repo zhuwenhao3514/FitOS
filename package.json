@@ -1,0 +1,15 @@
+{
+  "name": "fitos-local-fitness",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node serve.mjs",
+    "test": "node --test calculations.test.js",
+    "check": "node --check app.js && node --check calculations.js && node --check sw.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
+
