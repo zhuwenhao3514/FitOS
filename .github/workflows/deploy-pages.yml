@@ -23,11 +23,11 @@ jobs:
         with:
           node-version: 22
       - run: node --test calculations.test.js
-      - run: node --check app.js && node --check calculations.js && node --check sw.js
+      - run: node --check app.js && node --check calculations.js && node --check sync-client.js && node --check sw.js
       - name: Stage public website files
         run: |
           mkdir _site
-          cp index.html app.js calculations.js styles.css manifest.webmanifest sw.js icon.svg _site/
+          cp index.html app.js calculations.js sync-client.js styles.css manifest.webmanifest sw.js icon.svg _site/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v4
         with:
