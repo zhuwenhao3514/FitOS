@@ -17,5 +17,4 @@ GitHub Free 的 Pages 适用于公开仓库；公开仓库会公开项目源代�
 
 ## 数据与隐私
 
-网站公开后，任何人都可打开 FitOS，但每个人的档案与记录仍保存在自己的浏览器 IndexedDB 中，不会同步给你或其他访问者。不要在网页源码或仓库中放 API Key。浏览器直连 AI 有密钥暴露与 CORS 限制。
-
+网站公开后，任何人都可打开 FitOS。默认档案和记录保存在各自浏览器 IndexedDB。要在自己的电脑和手机同步，可选配置 Supabase；需建立个人 Supabase 项目、执行 RLS SQL，并在两台设备使用同一账户手动上传/下载。同步数据不放进公开 GitHub 仓库。详细步骤见 [SUPABASE_SYNC.md](SUPABASE_SYNC.md)。AI API Key 不要提交到网页源码或仓库；浏览器直连仍有密钥暴露和 CORS 限制。
