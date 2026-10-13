@@ -1,11 +1,13 @@
-# FitOS 电脑与手机同步
+# FitOS 电脑与手机自动同步
 
-FitOS 仍部署在 GitHub Pages。GitHub Pages 只托管静态网页；跨设备记录存储在用户自己创建的 Supabase 项目中。每个账号只有一份完整云端快照，FitOS 保留“上传覆盖云端”和“下载替换本机”两个明确操作，不会静默合并互相冲突的数据。
+GitHub Pages 只托管 FitOS 网页；跨设备业务数据保存在你自己创建的 Supabase 项目中。FitOS 默认保留本机 IndexedDB，并在登录后开启自动同步。
 
-## 一次性建立 Supabase 后端
+## 一次性配置
 
-1. 在 Supabase 创建一个项目，记下 Project URL 和公开的 `anon` / `publishable` key。
-2. 打开项目的 SQL Editor，执行下面脚本：
+1. 在 Supabase 创建项目，保存 Project URL 和公开的 `anon` / `publishable` key。
+2. 在项目 SQL Editor 执行下方建表及 RLS 策略脚本。
+3. 在 FitOS 的“设置 → 电脑与手机同步”填写 Project URL 和公开 key。
+4. 注册并验证邮箱，然后登录。
 
 ```sql
 create table if not exists public.fitos_sync (
@@ -29,22 +31,21 @@ create policy "Users can update own FitOS backup"
   with check (auth.uid() = user_id);
 ```
 
-3. 在 FitOS 的“设置 → 电脑与手机同步”里填 Project URL、anon/publishable key 并保存。不要填 `service_role` key。
-4. 用邮箱和密码注册同步账户。若 Supabase 要求邮箱验证，先点邮件验证，再回 FitOS 登录。
+## 自动同步行为
 
-## 两台设备同步
+- 登录成功后，FitOS 自动下载云端快照并替换本机数据。
+- 若账号还没有云端快照，首次登录会把当前设备已有数据上传，作为初始云端快照。
+- 打开或刷新 FitOS 时，如果浏览器仍保留登录状态，会自动检查并获取云端最新数据。
+- 每次本地数据更改后，FitOS 会稍作等待再自动上传。网络中断时数据仍保留在本机，恢复联网并再次编辑后会重试。
+- 如果本机存在时间晚于云端快照的未同步修改，FitOS 优先上传本机版本；否则下载云端版本。
+- 这是整份数据快照同步，不是实时协作或字段级合并。不同设备同时编辑同一份数据仍可能产生覆盖，重要数据建议定期导出 JSON。
 
-每台设备都打开公开 FitOS 网站，并填写相同的 Supabase Project URL 和 anon key，使用同一个同步账户登录。
-
-- 从当前有最新记录的设备点“上传本机数据到云端”。这会覆盖该账户上一份云端快照。
-- 在另一台设备点“下载云端数据并替换本机”。下载会完整替换该浏览器的 FitOS 数据；建议先导出本机 JSON 备份。
-- 在另一方向同步时，先从另一台设备上传，再在第一台下载。
-
-不要在不同设备同时离线编辑后连续上传：FitOS 不做字段级冲突合并，后一次上传会覆盖先前的云端快照。退出账户只清除当前标签页会话，不会删除云端快照。删除账号或云数据需在 Supabase 控制台操作。
+每台设备都需要填写同一项目 URL 和公开 key，并使用同一同步账号登录。浏览器本地的登录状态会保留，直到用户退出、浏览器数据被清理，或 Supabase 会话失效。共用设备请退出登录。
 
 ## 隐私与安全
 
-- FitOS 业务数据从浏览器通过 HTTPS 直接传给你配置的 Supabase 项目；启用 RLS 后，每个认证用户只能读写自己的行。
-- anon/publishable key 是客户端公开标识，安全边界由认证和 RLS 策略提供。绝不能在网页填入或仓库提交 `service_role` key。
-- 登录会话只保存在当前浏览器标签页的 sessionStorage；关闭标签页后需要重新登录。
-- 这不是 GitHub 账号登录，也不使用 GitHub 仓库存个人训练或饮食数据。
+- 业务数据通过 HTTPS 从浏览器发送至你配置的 Supabase 项目；RLS 让认证用户只能访问自己的云端记录。
+- `anon` / `publishable` key 是客户端公开标识。绝不要在网页或代码仓库中使用 `service_role` / Secret key。
+- 登录会话令牌会持久保存在当前浏览器的本地存储中，以支持关闭和重新打开后保持登录。设备其他使用者若能使用同一浏览器，也可能访问该账户；请在共享设备退出登录。
+- FitOS 的 AI API Key 不会包含在同步数据快照中。
+- Supabase 同步不是 GitHub 登录，也不会把个人训练或饮食数据提交到 GitHub 仓库。
